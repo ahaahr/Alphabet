@@ -3,7 +3,6 @@ package golf.alphabet.com.alphabet;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerTabStrip;
@@ -11,9 +10,12 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 
 import java.util.List;
 
@@ -25,12 +27,16 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
+    AlphabetApplication application;
+    Tracker tracker;
     ViewPager viewPager;
     PagerTabStrip tabStrip;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        application = (AlphabetApplication) getApplication();
+        tracker = application.getDefaultTracker();
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -43,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-
 
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         tabStrip = (PagerTabStrip) findViewById(R.id.pagerTabStrip);
@@ -62,15 +67,43 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public CharSequence getPageTitle(int position) {
                 switch (position) {
-                    case 0: return "Tuesday";
-                    case 1: return "Wednesday";
-                    case 2: return "Thursday";
-                    case 3: return "Friday";
-                    default: return "??";
+                    case 0:
+                        return "Tuesday";
+                    case 1:
+                        return "Wednesday";
+                    case 2:
+                        return "Thursday";
+                    case 3:
+                        return "Friday";
+                    default:
+                        return "??";
                 }
             }
         });
 
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset,
+                                       int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                Log.i("Alphabet", "sending event");
+//                tracker.setScreenName("schedule screen");
+//                tracker.send(new HitBuilders.ScreenViewBuilder().build());
+                tracker.send(new HitBuilders.EventBuilder()
+                        .setCategory("Action")
+                        .setAction("dayChange")
+                        .build());
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://oredev.eu-west-2.elasticbeanstalk.com/api/")
@@ -113,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
         sessionsCall5.enqueue(callback);
         sessionsCall6.enqueue(callback);
         sessionsCall7.enqueue(callback);
-
 
 
     }
